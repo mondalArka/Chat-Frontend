@@ -16,12 +16,3 @@ export const apiClient = axios.create({
 
 //   return config;
 // });
-
-export const isAuthenticated = async () => {
-    try {
-        await apiClient.get("/auth/me");
-        return true;
-    } catch {
-        return false;
-    }
-};

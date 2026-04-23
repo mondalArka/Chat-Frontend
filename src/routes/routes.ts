@@ -1,5 +1,6 @@
 export const RoutePaths = {
     login: '/',
-    otp: '/otp'
+    otp: '/otp',
+    dashboard:'/dashboard'
 
 }

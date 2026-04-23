@@ -1,6 +1,7 @@
 import type { VerifySignIn } from "../components/types/response.types";
 import type { SignIn } from "../features/Auth/Types/response.types";
 import type { ApiResponse } from "../types/response.types";
+import type { User } from "../types/user.types";
 import { apiClient } from "./client";
 export const login = async (email: string): Promise<ApiResponse<SignIn>> => {
     const data = await apiClient.post("/auth/signin", { email });
@@ -11,3 +12,8 @@ export const verifyLoginOtp = async (sessionId: string, otp: string): Promise<Ap
     const data = await apiClient.post("/auth/login-verify", { sessionId, otp });
     return data.data;
 }
+
+export const getMe = async (): Promise<User> => {
+    const res = await apiClient.get("/auth/me");
+    return res.data.data.user;
+};
