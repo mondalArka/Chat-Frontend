@@ -1,4 +1,4 @@
 export type VerifySignIn = {
-    accessToken: string,
+    sessionId: string,
     user: object
 }

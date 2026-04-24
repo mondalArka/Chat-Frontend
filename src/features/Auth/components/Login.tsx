@@ -5,6 +5,7 @@ import type { SignIn } from "../Types/response.types";
 import { useNavigate } from "react-router-dom";
 import { RoutePaths } from "../../../routes/routes";
 import { UseCase } from "../../../types/useCase.enum";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const { handleLogin, loading } = useLogin();
@@ -57,7 +58,7 @@ export default function Login() {
 
           <button
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-3 rounded-xl transition-colors"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-3 rounded-xl transition-colors cursor-pointer"
             onClick={() => onSubmit()}
           >
             {loading ? "Logging in..." : "Login →"}
@@ -65,7 +66,7 @@ export default function Login() {
 
           <p className="text-center text-sm text-gray-400 mt-6">
             No account?{" "}
-            <a href="#" className="text-indigo-600 font-semibold hover:underline">Sign up free</a>
+            <Link to="/register" className="text-indigo-600 font-semibold hover:underline cursor-pointer">Sign up free</Link>
           </p>
         </div>
 

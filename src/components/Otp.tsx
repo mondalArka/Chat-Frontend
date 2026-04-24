@@ -4,6 +4,7 @@ import { UseCase } from "../types/useCase.enum";
 import { useVerifyOtp } from "./hooks/useVerifyOtp";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { RoutePaths } from "../routes/routes";
 
 export default function OTPInput(
     { length = 6,
@@ -71,7 +72,7 @@ export default function OTPInput(
 
                 <button
                     disabled={loading}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium cursor-pointer"
                     onClick={onSubmit}
                 >
                     {loading ? "Verifying" : "Verify"}
@@ -79,7 +80,7 @@ export default function OTPInput(
                 {!loading && (
                     <button
                         onClick={() => navigate("/")}
-                        className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
+                        className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

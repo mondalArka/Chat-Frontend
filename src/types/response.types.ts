@@ -1,7 +1,12 @@
-export interface ApiResponse<T>{
+export interface ApiResponse<T> {
     statusCode: number;
     success: boolean;
     data: T;
     message?: string;
-    error?: string  | string[];
+    error?: string | string[];
+}
+
+export type SessionType = {
+
+    sessionId: string
 }

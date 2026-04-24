@@ -5,20 +5,25 @@ import { RoutePaths } from "./routes/routes";
 import Otp from "./components/Otp";
 import { ProtectedRoute } from "./routes/Protected.routes";
 import { Dashboard } from "./features/Chat/Dashboard";
+import { AuthProvider } from "./providers/AuthProvider";
+import Registration from "./features/Auth/components/Registration";
 function App() {
   return (
     <>
-      <BrowserRouter>
-        <Toaster position="top-right" />
-        <Routes>
-          <Route path={RoutePaths.login} element={<Login />} />
-          <Route path={RoutePaths.otp} element={<Otp />} />
+      <AuthProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" />
+          <Routes>
+            <Route path={RoutePaths.register} element={<Registration />} />
+            <Route path={RoutePaths.login} element={<Login />} />
+            <Route path={RoutePaths.otp} element={<Otp />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </>
   )
 }
