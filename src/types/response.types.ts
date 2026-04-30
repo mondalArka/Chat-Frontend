@@ -10,3 +10,15 @@ export type SessionType = {
 
     sessionId: string
 }
+
+export type Chat = {
+    id: string;
+    type: string;
+    chatName: string;
+    lastMessage: string;
+    participants: string[];
+    messages: string[];
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date;
+}

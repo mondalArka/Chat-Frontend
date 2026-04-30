@@ -31,6 +31,7 @@ export const useVerifyOtp = (): {
             switch (useCase) {
                 case UseCase.SIGNIN: {
                     res = await verifyLoginOtp(sessionId, otp);
+                    setUser(res!.data.user as User);
                     navigateTo = RoutePaths.dashboard;
                     break;
                 }
@@ -52,7 +53,6 @@ export const useVerifyOtp = (): {
             }
 
             toast.success(res!.message as string);
-            setUser(res!.data.user as User);
             navigate(navigateTo);
             return res as ApiResponse<VerifySignIn>;
         } catch (err: any) {

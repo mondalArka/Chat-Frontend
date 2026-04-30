@@ -5,19 +5,22 @@ import { apiClient } from "../api/client";
 import { getMe } from "../api/auth.api";
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
 
     useEffect(() => {
-       getMe().then((data) => setUser(data))
-       .catch(() => setUser(null));
+        getMe().then((data) => setUser(data))
+            .catch(() => setUser(null))
+            .finally(() => setLoading(false));
     }, []);
-
+0
     const logout = async () => {
         try {
             await apiClient.get("/auth/logout");
         } catch { }
         setUser(null);
     };
-
+    if (loading) return null
     return (
         <AuthContext.Provider
             value={
