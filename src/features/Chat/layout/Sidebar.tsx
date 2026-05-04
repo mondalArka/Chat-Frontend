@@ -27,12 +27,12 @@ export function SideBar({
             <div className="flex-1 overflow-y-auto">
 
                 {chats?.map((item: any) => {
-                    const isActive = selectedChatId === item.chatId;
+                    const isActive = selectedChatId === item.chat_id;
 
                     return (
                         <div
-                            key={item.chatId}
-                            onClick={() => setSelectedChat(item.chatId)}
+                            key={item.chat_id}
+                            onClick={() => setSelectedChat(item.chat_id)}
                             className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b transition
                                 ${isActive
                                     ? "bg-green-100 border-l-4 border-green-500"
@@ -41,14 +41,14 @@ export function SideBar({
                         >
                             {/* Avatar */}
                             <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center font-bold">
-                                {item?.chat?.chatName?.[0]?.toUpperCase() || "?"}
+                                {item?.chat_chatName || "?"}
                             </div>
 
                             {/* Chat Info */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center">
                                     <span className="font-medium truncate">
-                                        {item?.chat?.chatName}
+                                        {item?.chat_chatName}
                                     </span>
                                     <span className="text-xs text-gray-400">
                                         2:45 PM
@@ -56,7 +56,7 @@ export function SideBar({
                                 </div>
 
                                 <div className="text-sm text-gray-500 truncate">
-                                    {item?.chat?.lastMessage?.message || "No messages yet"}
+                                    {item?.lastMessage_message || "No messages yet"}
                                 </div>
                             </div>
 
