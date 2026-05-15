@@ -11,25 +11,29 @@ export type SessionType = {
     sessionId: string
 }
 
+export type ChatParticipant = {
+    userId: number;
+    name: string;
+    email: string;
+    unreadCount: number;
+};
+
 export type Chat = {
-    chat_id: string;
-    chat_type: string;
-    participants_chatId: string;
-    participants_userId: string;
-    participants_unreadCount: number;
-    participants_joinedAt: Date;
-    lastMessage_id: string;
-    lastMessage_senderId: string;
-    lastMessage_message: string;
-    lastMessage_type: string;
-    lastMessage_createdAt: Date;
-    lastMessage_updatedAt: Date;
-    lastMessage_deletedAt: Date;
-    chat_chatName: string;
-    chat_createdAt: Date;
-    chat_updatedAt: Date;
-    chat_deletedAt: Date;
-}
+    chatId: string;
+    chatName: string;
+    lastMessageContent: string | null;
+    lastMessageTime: string | null;
+    participants: ChatParticipant[];
+    createdAt: Date;
+    updatedAt: Date;
+    chatType: string;
+};
+
+export type GetChatsResponse = {
+    data: Chat[];
+    message: string;
+    statusCode: number;
+};
 
 export interface MessageMedia {
     id: string;
@@ -66,6 +70,7 @@ export interface Message {
         name: string;
         email: string;
     };
+    isRead: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt?: string | null;

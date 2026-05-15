@@ -28,7 +28,7 @@ export const useMessage = (chatId: string) => {
     useEffect(() => {
         if (!chatId) return;
 
-        fetchMessage(); // ✅ just call it
+        fetchMessage();
     }, [fetchMessage]);
 
     return { messages, loading, fetchMessage, setMessages };

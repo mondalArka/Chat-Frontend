@@ -7,12 +7,13 @@ export const apiClient = axios.create({
     withCredentials: true,
 });
 // in case token not found just for practice
-// apiClient.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("accessToken");
-
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-
-//   return config;
-// });
+apiClient.interceptors.response.use(
+    (res => res),
+    (err) => {
+        console.log(err.config.url)
+        if (err.response?.status === 401 && err.config.url !== "/auth/me") {
+            window.location.href = "/";
+        }
+        return Promise.reject(err);
+    }
+);

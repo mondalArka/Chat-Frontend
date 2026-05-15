@@ -1,13 +1,25 @@
-import { io, Socket } from "socket.io-client";
-let socket: Socket | null = null;
+import { io, type Socket } from "socket.io-client";
 
-export const connectSocket = () => {
-    if (!socket) {
-        socket = io(import.meta.env.VITE_SERVER, {
-            autoConnect: true
+let instance: Socket | null = null;
+
+export const connectSocket = (): Socket => {
+    if (!instance || instance.disconnected) {
+        instance = io(import.meta.env.VITE_SERVER, {
+            withCredentials: true,
+            transports: ["polling", "websocket"],
+            reconnection: true,
         });
+        console.log("insss", instance);
     }
-    return socket;
+    console.log("outside", instance);
+    return instance;
 };
 
-export const getSocket = () => socket;
+export const disconnectSocket = () => {
+    if (instance) {
+        instance.disconnect();
+        instance = null; // ✅ reset so next connectSocket() creates fresh
+    }
+};
+
+export const getSocket = () => instance;

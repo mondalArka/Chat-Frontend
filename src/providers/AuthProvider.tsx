@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
     }, []);
-0
     const logout = async () => {
         try {
             await apiClient.get("/auth/logout");
@@ -21,6 +20,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
     };
     if (loading) return null
+    console.log( {
+                    isAuthenticated: !!user,
+                    user,
+                    // logout,
+                    // setUser
+                })
     return (
         <AuthContext.Provider
             value={
