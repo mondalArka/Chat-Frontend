@@ -5,13 +5,11 @@ import { RoutePaths } from "./routes/routes";
 import Otp from "./components/Otp";
 import { ProtectedRoute } from "./routes/Protected.routes";
 import { Dashboard } from "./features/Chat/Dashboard";
-import { AuthProvider } from "./providers/AuthProvider";
 import Registration from "./features/Auth/components/Registration";
 import { useAuth } from "./context/auth.context";
 import { useSocket } from "./socket/socket.context";
 import { useCallback, useLayoutEffect } from "react";
 function App() {
-  console.log("popopopopopopoppo")
   const { socket } = useSocket();
   const { isAuthenticated, user } = useAuth()
   console.log(isAuthenticated, user, "uuu")

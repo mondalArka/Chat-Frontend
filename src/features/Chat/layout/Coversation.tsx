@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useSocket } from "../../../socket/socket.context";
 import { useAuth } from "../../../context/auth.context";
 import { useMessagingSocket } from "../hooks/useMessageSocket";
+import { formatTime } from "../../../utils/timeFormat";
 
 export function Conversation({ chatId, userId }: { chatId: string; userId: string }) {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const { socket } = useSocket();
-    const { message, messageList, handleMessage, addMessage } = useMessagingSocket(chatId);
+    const { messages, messageList, addMessage, handleMessage } = useMessagingSocket(chatId);
     const { user } = useAuth();
     useEffect(() => {
         messageList();
@@ -25,7 +27,7 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [message]);
+    }, [messages]);
 
     const sendMessage = async () => {
         const text = inputRef.current?.value ?? "";
@@ -37,6 +39,7 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
         formData.append("senderId", String(user?.id));
         try {
             await addMessage(formData);
+
             if (inputRef.current) inputRef.current.value = "";
         } catch (err) {
             console.error("Failed to send message", err);
@@ -48,11 +51,6 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
             e.preventDefault();
             sendMessage();
         }
-    };
-
-    const formatTime = (isoString?: string) => {
-        if (!isoString) return "";
-        return new Date(isoString).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     };
 
     return (
@@ -80,17 +78,12 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
                 onMouseEnter={e => (e.currentTarget.style.overflowY = "auto")}
                 onMouseLeave={e => (e.currentTarget.style.overflowY = "hidden")}
             >
-                {message.length === 0 && (
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <p style={{ color: "#4a5568", fontSize: "14px" }}>No messages yet. Say hello! 👋</p>
-                    </div>
-                )}
-                {message.map((msg, index) => {
+                {messages.length !== 0 ? messages.map((msg, index) => {
                     const isOwn = String(msg.sender?.id) === String(userId);
-                    const prevMsg = message[index - 1];
+                    const prevMsg = messages[index - 1];
                     const showSpacer = prevMsg && String(prevMsg.senderId) !== String(msg.senderId);
                     return (
-                        <div key={msg.id ?? index}>
+                        <div about={msg.id} key={msg.id}>
                             {showSpacer && <div style={{ height: "12px" }} />}
                             <div style={{
                                 display: "flex",
@@ -127,7 +120,11 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
                             </div>
                         </div>
                     );
-                })}
+                }) :
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <p style={{ color: "#4a5568", fontSize: "14px" }}>No messages yet. Say hello! 👋</p>
+                    </div>
+                }
                 <div ref={bottomRef} />
             </div>
 
@@ -136,10 +133,18 @@ export function Conversation({ chatId, userId }: { chatId: string; userId: strin
                 padding: "16px 20px", borderTop: "1px solid #1e2235",
                 background: "#141620", display: "flex", alignItems: "center", gap: "12px"
             }}>
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    accept="image/*,video/*,audio/*"  // restrict to media files
+                // onChange={}
+                />
                 <button style={{
                     background: "none", border: "none", cursor: "pointer",
                     color: "#4a5568", fontSize: "20px", padding: "4px", lineHeight: 1
-                }}>📎</button>
+                }} onClick={() => fileInputRef.current?.click()}>📎</button>
                 <input
                     ref={inputRef}
                     type="text"

@@ -1,24 +1,29 @@
 import { useState } from "react";
 import type { Message } from "../../../types/response.types";
 import { createMessage, getMessages } from "../../../api/chat.api";
+import { useMessage } from "./useMessage";
+import { useAuth } from "../../../context/auth.context";
 
 export const useMessagingSocket = (chatId: string) => {
-    const [message, setMessage] = useState<Message[]>([]);
-
+    const { messages, setMessages } = useMessage(chatId);
+    const { user } = useAuth();
     const messageList = async () => {
         const res = await getMessages(chatId);
-        setMessage(res.data);
+        setMessages(res.data);
     };
 
     const handleMessage = (msg: Message) => {
+        if (String(user?.id) !== String(msg.sender?.id))
+            alert("You have a new message"); // ignore own messages
         if (String(msg.chatId) !== String(chatId)) return;
-        setMessage((prev) => [...prev, msg]);
+        const isMsgExists = messages.reverse().some((m) => String(m.id) === String(msg.id));
+        if (isMsgExists) return;
+        setMessages((prev) => [...prev, msg]);
     };
 
     const addMessage = async (data: any) => {
-        const res = await createMessage(data);
-        setMessage((prev) => [...prev, res.data]);
+        await createMessage(data);
     };
 
-    return { message, messageList, handleMessage, addMessage };
+    return { messages, messageList, addMessage, handleMessage };
 };

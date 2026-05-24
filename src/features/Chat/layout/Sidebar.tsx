@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Chat } from "../../../types/response.types";
 import type { SideBarProps } from "../../../types/props.types";
-import { useMessage } from "../hooks/useMessage";
 import { useAuth } from "../../../context/auth.context";
-import toast from "react-hot-toast";
-import { readChat } from "../../../api/chat.api";
+import NewChatModal from "../../../modal/NewChatModal";
 
-export function SideBar({ chats, selectedChatId, setSelectedChat }: SideBarProps) {
+export function SideBar({ chats, selectedChatId, setSelectedChat, setRefresh }: SideBarProps) {
     const [search, setSearch] = useState("");
     const { user } = useAuth();
+    const dialogRef = useRef<HTMLDialogElement | null>(null);
+    const filtered = chats?.filter((item: Chat) => {
+        const displayName = item.chatType === "group"
+            ? item?.chatName || "Unknown Group"
+            : item.participants.find(p => p.userId !== Number(user!.id))?.name || "Unknown User";
 
-    const filtered = chats?.filter((item: Chat) =>
-        item?.chatName?.toLowerCase().includes(search.toLowerCase())
-    );
+        return displayName.toLowerCase().includes(search.toLowerCase());
+    });
 
     const getInitials = (name: string) =>
         name ? name.slice(0, 2).toUpperCase() : "?";
@@ -31,12 +33,10 @@ export function SideBar({ chats, selectedChatId, setSelectedChat }: SideBarProps
 
     const handleOnSelectChat = async (chatId: string) => {
         setSelectedChat(chatId);
-        try {
-            await readChat(chatId);
-        } catch (err) {
-            toast.error("Failed to mark messages as read");
-            console.error("Error marking messages as read:", err);
-        }
+    }
+
+    const createNewchatModal = () => {
+        dialogRef.current?.showModal();
     }
 
     return (
@@ -60,7 +60,7 @@ export function SideBar({ chats, selectedChatId, setSelectedChat }: SideBarProps
                         color: "#94a3b8", fontSize: "18px", display: "flex",
                         alignItems: "center", justifyContent: "center"
                     }}
-                        onClick={() => { }}
+                        onClick={() => { createNewchatModal() }}
                     >+</button>
                 </div>
 
@@ -134,7 +134,6 @@ export function SideBar({ chats, selectedChatId, setSelectedChat }: SideBarProps
                             </div>
 
                             {/* Info */}
-                            {/* Info */}
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
                                     <span style={{
@@ -189,6 +188,7 @@ export function SideBar({ chats, selectedChatId, setSelectedChat }: SideBarProps
                     borderRadius: "50%", background: "#0ca678"
                 }} />
             </div>
+            <NewChatModal dialogRef={dialogRef} setRefresh={setRefresh} />
         </div>
     );
 }

@@ -25,3 +25,8 @@ export const readChat = async (chatId: string) => {
     });
     return res.data;
 } 
+
+export const createChat = async (data: any) => {
+    const res = await apiClient.post("/chat", data);
+    return res.data;
+}

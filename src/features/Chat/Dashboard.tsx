@@ -1,12 +1,11 @@
 import { useAuth } from "../../context/auth.context";
-import { useSocket } from "../../socket/socket.context";
 import { useChat } from "./hooks/useChat";
 import { Conversation } from "./layout/Coversation";
 import { SideBar } from "./layout/Sidebar";
 
 
 export function Dashboard() {
-    const { loading, chats, onSelectedChat, selectedChatId } = useChat();
+    const {  chats, onSelectedChat, selectedChatId, setRefresh } = useChat();
     const { user } = useAuth();
 
     return (
@@ -16,6 +15,7 @@ export function Dashboard() {
                 chats={chats}
                 selectedChatId={selectedChatId}
                 setSelectedChat={onSelectedChat}
+                setRefresh={setRefresh}
             />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {selectedChatId ? (
