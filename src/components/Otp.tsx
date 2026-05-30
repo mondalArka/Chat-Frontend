@@ -4,8 +4,6 @@ import { UseCase } from "../types/useCase.enum";
 import { useVerifyOtp } from "./hooks/useVerifyOtp";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { RoutePaths } from "../routes/routes";
-
 export default function OTPInput(
     { length = 6,
     }: OTPProps

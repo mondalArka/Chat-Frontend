@@ -13,11 +13,10 @@ export const useMessagingSocket = (chatId: string) => {
     };
 
     const handleMessage = (msg: Message) => {
-        if (String(user?.id) !== String(msg.sender?.id))
-            alert("You have a new message"); // ignore own messages
         if (String(msg.chatId) !== String(chatId)) return;
         const isMsgExists = messages.reverse().some((m) => String(m.id) === String(msg.id));
         if (isMsgExists) return;
+        
         setMessages((prev) => [...prev, msg]);
     };
 

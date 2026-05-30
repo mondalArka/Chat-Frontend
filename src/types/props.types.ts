@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Chat } from "./response.types";
+import type { User } from "./user.types";
 
 export type OTPProps = {
     length?: number;

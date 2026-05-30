@@ -5,7 +5,7 @@ import { SideBar } from "./layout/Sidebar";
 
 
 export function Dashboard() {
-    const {  chats, onSelectedChat, selectedChatId, setRefresh } = useChat();
+    const {  chats, onSelectedChat, selectedChatId, setRefresh, participants } = useChat();
     const { user } = useAuth();
 
     return (
@@ -19,7 +19,7 @@ export function Dashboard() {
             />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {selectedChatId ? (
-                    <Conversation chatId={selectedChatId} userId={String(user?.id)} />
+                    <Conversation chatId={selectedChatId} userId={String(user?.id)} participants={participants} />
                 ) : (
                     <div style={{
                         flex: 1, display: "flex", flexDirection: "column",

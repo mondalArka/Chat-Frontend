@@ -1,19 +1,20 @@
 import toast from "react-hot-toast";
-import { getChats, readChat } from "../../../api/chat.api"
+import { getChats, getParticipantsForChat, readChat } from "../../../api/chat.api"
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Chat } from "../../../types/response.types";
+import type { ApiResponse, Chat } from "../../../types/response.types";
 import { useSocket } from "../../../socket/socket.context";
 import { useAuth } from "../../../context/auth.context";
+import type { User } from "../../../types/user.types";
 
 export const useChat = () => {
     const [loading, setLoading] = useState<boolean>(false);
+    const [participants, setParticipants] = useState<User[]>([]);
     const [selectedChatId, setSelectedChatId] = useState<string>('');
     const [chats, setChats] = useState<Chat[]>([]);
     const [refresh, setRefresh] = useState<boolean>(false);
     const { socket } = useSocket() as any;
     const selectedChatIdRef = useRef<string>('');
     const { user } = useAuth();
-
 
     const handleNewMessage = useCallback((newMsg: any) => {
         console.log("🔥 receive-message in useChat:", newMsg); // debug
@@ -88,6 +89,17 @@ export const useChat = () => {
     }, [refresh]);
 
     const onSelectedChat = async (chatId: string) => {
+        if (!chatId) return;
+        console.log("selected chat id", chatId);
+        try {
+            const users = await getParticipantsForChat(chatId) as unknown as ApiResponse<User[]>;
+            setParticipants(users.data as unknown as User[]);
+        } catch (e: any) {
+            const messsage = e?.response?.data?.message as string;
+            toast.error(messsage || "Failed to fetch participants for this chat");
+        }
+
+
         setSelectedChatId(chatId);
         try {
             await readChat(chatId);
@@ -111,5 +123,5 @@ export const useChat = () => {
         );
         selectedChatIdRef.current = chatId;
     }
-    return { loading, getChat, selectedChatId, setSelectedChatId, chats, onSelectedChat, setRefresh }
+    return { loading, getChat, selectedChatId, setSelectedChatId, chats, onSelectedChat, setRefresh, participants }
 }
