@@ -5,10 +5,10 @@ import toast from "react-hot-toast";
 export const userUserData = () => {
     const [userData, setUserData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const getUserData = async () => {
+    const getUserData = async (refresh: boolean = false) => {
         setLoading(true);
         try {
-            const res = await getUsers();
+            const res = await getUsers(refresh);
             setUserData(res.data);
         } catch (err: any) {
             const message = err?.response?.data?.message || err?.response?.data?.error;

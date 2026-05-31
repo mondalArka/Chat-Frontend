@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useSocket } from "../../../socket/socket.context";
 import { useAuth } from "../../../context/auth.context";
 import { useMessagingSocket } from "../hooks/useMessageSocket";
@@ -8,7 +8,10 @@ import { API_URL } from "../../../api/config";
 import MessageOptions from "../../../modal/MessageOptions";
 import type { User } from "../../../types/user.types";
 
-export function Conversation({ chatId, userId, participants }: { chatId: string; userId: string, participants: User[] }) {
+export function Conversation(
+    { chatId, userId, participants, cursorRef }:
+        { chatId: string; userId: string, participants: User[], cursorRef: RefObject<Record<string, string>> }
+) {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [hoverMessageId, setHoverMessageId] = useState<string | null>(null);
@@ -17,11 +20,15 @@ export function Conversation({ chatId, userId, participants }: { chatId: string;
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null); // ✅ added
+    const isInitialLoad = useRef(true); // ✅ added
     const { socket } = useSocket();
-    const { messages, messageList, addMessage, handleMessage } = useMessagingSocket(chatId);
+    const { messages, addMessage, handleMessage, sending, loadMore, hasMore, loadingMore } = useMessagingSocket( // ✅ added loadMore, hasMore, loadingMore
+        chatId,
+        cursorRef
+    );
+    const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { user } = useAuth();
-
-    useEffect(() => { messageList(); }, [chatId]);
 
     useEffect(() => {
         if (!socket) return;
@@ -29,9 +36,32 @@ export function Conversation({ chatId, userId, participants }: { chatId: string;
         return () => { socket.off("receive-message", handleMessage); };
     }, [socket, chatId]);
 
+    // ✅ replaced old scroll useEffect
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (isInitialLoad.current && messages.length > 0) {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            isInitialLoad.current = false;
+        }
     }, [messages]);
+
+    // ✅ reset on chat switch
+    useEffect(() => {
+        isInitialLoad.current = true;
+    }, [chatId]);
+
+    // ✅ added scroll handler
+    const handleScroll = () => {
+        if (isInitialLoad.current) return;  // ✅ block during initial load
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        if (scrollTimer.current) clearTimeout(scrollTimer.current);
+        scrollTimer.current = setTimeout(() => {
+            if (container.scrollTop <= 50 && hasMore && !loadingMore) {
+                loadMore();
+            }
+        }, 200);
+    };
+
 
     const onRowEnter = (id: string) => {
         if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
@@ -85,7 +115,6 @@ export function Conversation({ chatId, userId, participants }: { chatId: string;
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
         let files = Array.from(e.target.files ?? []);
         if (!files.length) return;
         if (files.length + selectedFiles.length > 5) {
@@ -145,7 +174,21 @@ export function Conversation({ chatId, userId, participants }: { chatId: string;
                 </div>
             </div>
 
-            <div style={S.messages}>
+            {/* ✅ added ref and onScroll */}
+            <div ref={messagesContainerRef} style={S.messages} onScroll={handleScroll}>
+
+                {/* ✅ added loading indicators */}
+                {loadingMore && (
+                    <div style={{ textAlign: "center", padding: "8px", color: "#94a3b8", fontSize: 12 }}>
+                        Loading...
+                    </div>
+                )}
+                {!hasMore && messages.length > 0 && (
+                    <div style={{ textAlign: "center", padding: "8px", color: "#4a5568", fontSize: 12 }}>
+                        No more messages
+                    </div>
+                )}
+
                 {messages.length !== 0 ? messages.map((msg, index) => {
                     const isOwn = String(msg.sender?.id) === String(userId);
                     const prevMsg = messages[index - 1];
@@ -341,7 +384,11 @@ export function Conversation({ chatId, userId, participants }: { chatId: string;
                     onBlur={e => (e.currentTarget.style.borderColor = "#252b3d")}
                 />
                 <button
-                    style={S.sendBtn}
+                    style={{
+                        ...S.sendBtn,
+                        opacity: sending ? 0.5 : 1,
+                        cursor: sending ? "not-allowed" : "pointer"
+                    }}
                     onClick={sendMessage}
                     onMouseEnter={e => (e.currentTarget.style.background = "#2f4ac7")}
                     onMouseLeave={e => (e.currentTarget.style.background = "#3b5bdb")}

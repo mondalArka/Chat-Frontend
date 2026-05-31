@@ -5,8 +5,8 @@ export const getChats = async () => {
     return res.data;
 }
 
-export const getMessages = async (chatId: string) => {
-    const res = await apiClient.get(`/message/${chatId}`);
+export const getMessages = async (chatId: string, cursor: string = "initial") => {
+    const res = await apiClient.get(`/message/${chatId}${`?cursor=${cursor}`}`);
     return res.data;
 }
 
@@ -32,9 +32,9 @@ export const createChat = async (data: any) => {
 }
 
 export const getParticipantsForChat = async (chatId: string) => {
-    console.log(chatId,"idddd")
+    console.log(chatId, "idddd")
     const res = await apiClient.get(`/chat/${chatId}`);
 
-    console.log(res.data,"huhuhuhuhuhuh")
+    console.log(res.data, "huhuhuhuhuhuh")
     return res.data;
 }

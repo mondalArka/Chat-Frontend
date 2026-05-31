@@ -7,14 +7,14 @@ import { useAuth } from "../context/auth.context";
 export default function NewChatModal({ dialogRef, setRefresh }: any) {
     const [chatType, setChatType] = useState<"one" | "group">("one");
     const [selectedUsers, setSelectedUsers] = useState<{ id: string; name: string }[]>([]);
-    const [refreshUser, setRefreshUser] = useState<boolean>(false);
+    const [refreshUser, setRefreshUser] = useState<number>(0);
     const chatNameRef = useRef<HTMLInputElement | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const { getUserData, userData, loading: userLoading } = userUserData();
     const { user } = useAuth();
 
     useEffect(() => {
-        getUserData();
+        getUserData(refreshUser === 0 ? false : true);
     }, [refreshUser]);
 
     const handleChatTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -174,7 +174,7 @@ export default function NewChatModal({ dialogRef, setRefresh }: any) {
                         <div style={{ display: "flex", justifyContent: "flex-end" }}>
                             <button
                                 type="button"
-                                onClick={() => setRefreshUser((prev: boolean) => !prev)}
+                                onClick={() => setRefreshUser((prev: number) => prev + 1    )}
                                 style={{
                                     background: "none",
                                     border: "none",

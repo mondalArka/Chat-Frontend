@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         getMe().then((data) => setUser(data))
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
-    }, []);
+    }, [!!user]);
     const logout = async () => {
         try {
             await apiClient.get("/auth/logout");

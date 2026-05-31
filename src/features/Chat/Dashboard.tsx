@@ -1,3 +1,4 @@
+import React, { useRef } from "react";
 import { useAuth } from "../../context/auth.context";
 import { useChat } from "./hooks/useChat";
 import { Conversation } from "./layout/Coversation";
@@ -5,7 +6,8 @@ import { SideBar } from "./layout/Sidebar";
 
 
 export function Dashboard() {
-    const {  chats, onSelectedChat, selectedChatId, setRefresh, participants } = useChat();
+    const { chats, onSelectedChat, selectedChatId, setRefresh, participants } = useChat();
+    const cursorRef = useRef<Record<string, string>>({});
     const { user } = useAuth();
 
     return (
@@ -19,7 +21,12 @@ export function Dashboard() {
             />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {selectedChatId ? (
-                    <Conversation chatId={selectedChatId} userId={String(user?.id)} participants={participants} />
+                    <Conversation
+                        chatId={selectedChatId}
+                        userId={String(user?.id)}
+                        participants={participants}
+                        cursorRef={cursorRef}
+                    />
                 ) : (
                     <div style={{
                         flex: 1, display: "flex", flexDirection: "column",
