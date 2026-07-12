@@ -9,6 +9,7 @@ import Registration from "./features/Auth/components/Registration";
 import { useAuth } from "./context/auth.context";
 import { useSocket } from "./socket/socket.context";
 import { useCallback, useLayoutEffect } from "react";
+
 function App() {
   const { socket } = useSocket();
   const { isAuthenticated, user } = useAuth()
@@ -51,7 +52,9 @@ function App() {
           <Route path={RoutePaths.otp} element={<Otp />} />
 
           <Route element={<ProtectedRoute />}>
+
             <Route path="/dashboard" element={<Dashboard />} />
+
           </Route>
         </Routes>
       </BrowserRouter>

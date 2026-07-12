@@ -203,7 +203,7 @@ export function Conversation(
                             >
                                 {!isOwn && (
                                     <div style={S.senderAvatar}>
-                                        {msg.sender?.name?.slice(0, 1).toUpperCase() ?? "U"}
+                                        {msg.sender?.name?.slice(0,1).toUpperCase() ?? "U"}
                                     </div>
                                 )}
                                 <div style={S.msgWrapper}>

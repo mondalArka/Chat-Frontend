@@ -1,7 +1,15 @@
 import toast from "react-hot-toast";
-import { getChats, getParticipantsForChat, readChat } from "../../../api/chat.api"
+import {
+    getChats,
+    getParticipantsForChat,
+    readByChatIdNotification,
+    readChat,
+    getNotification,
+    markAllAsRead,
+    readNotification
+} from "../../../api/chat.api"
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ApiResponse, Chat } from "../../../types/response.types";
+import type { ApiResponse, Chat, NotificationResponse } from "../../../types/response.types";
 import { useSocket } from "../../../socket/socket.context";
 import { useAuth } from "../../../context/auth.context";
 import type { User } from "../../../types/user.types";
@@ -12,19 +20,27 @@ export const useChat = () => {
     const [selectedChatId, setSelectedChatId] = useState<string>('');
     const [chats, setChats] = useState<Chat[]>([]);
     const [refresh, setRefresh] = useState<boolean>(false);
+    const [isAllNotifRead, setIsAllNotifRead] = useState<boolean>(false);
+    const [isNotifOpened, setIsNotifOpened] = useState<boolean>(false);
+
+    // ✅ notification state — moved here from SideBar + NotificationComp
+    const [notification, setNotification] = useState<NotificationResponse>();
+    const [notifLoading, setNotifLoading] = useState(false);
+    const [notifError, setNotifError] = useState<string | null>(null);
+    const [markingAllRead, setMarkingAllRead] = useState(false);
+    const [notifRefresh, setNotifRefresh] = useState(false);
+
     const { socket } = useSocket() as any;
     const selectedChatIdRef = useRef<string>('');
     const { user } = useAuth();
 
     const handleNewMessage = useCallback((newMsg: any) => {
-        console.log("🔥 receive-message in useChat:", newMsg); // debug
+        console.log("🔥 receive-message in useChat:", newMsg);
         setChats((prev) =>
             prev
                 .map((chat) => {
                     if (chat.chatId !== String(newMsg.chatId)) return chat;
-
-                    const isCurrentlyViewing = selectedChatIdRef.current === String(newMsg.chatId); // ✅ always fresh
-
+                    const isCurrentlyViewing = selectedChatIdRef.current === String(newMsg.chatId);
                     return {
                         ...chat,
                         lastMessageContent: newMsg.message,
@@ -32,10 +48,10 @@ export const useChat = () => {
                         participants: chat.participants.map((p) => ({
                             ...p,
                             unreadCount: isCurrentlyViewing
-                                ? 0                                              // ✅ reset to 0 if user is in this chat
+                                ? 0
                                 : String(p.userId) !== String(newMsg.sender?.id)
-                                    ? (p.unreadCount || 0) + 1                  // increment for other participants
-                                    : p.unreadCount                             // sender stays unchanged
+                                    ? (p.unreadCount || 0) + 1
+                                    : p.unreadCount
                         }))
                     };
                 })
@@ -44,21 +60,22 @@ export const useChat = () => {
                     const bTime = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
                     return bTime - aTime;
                 })
-
-
         );
-
     }, []);
 
+    const checkIsUserInChat = ({ chatId }: { chatId: string },
+        callback: (res: { userId: string; isViewing: boolean }) => void) => {
+        const isUserInChat = selectedChatIdRef.current === String(chatId);
+        callback({ userId: String(user?.id), isViewing: isUserInChat });
+    }
+
     useEffect(() => {
-        console.log("🧩 socket in useChat:", socket?.id, socket?.connected)
         if (!socket) return;
-
-        console.log("🧩 socket in useChat:", socket?.id, socket?.connected);
         socket.on("receive-message", handleNewMessage);
-
+        socket.on("check-chat", checkIsUserInChat);
         return () => {
             socket.off("receive-message", handleNewMessage);
+            socket.off("check-chat", checkIsUserInChat);
         };
     }, [socket]);
 
@@ -67,7 +84,6 @@ export const useChat = () => {
             setLoading(true);
             const res = await getChats();
             setChats(res.data);
-            console.log(res.data, "chats in useChat")
             return res;
         } catch (err: any) {
             const message = err?.response?.data?.message || err?.response?.data?.error;
@@ -79,7 +95,6 @@ export const useChat = () => {
         }
     }
 
-
     useEffect(() => {
         try {
             getChat();
@@ -88,9 +103,49 @@ export const useChat = () => {
         }
     }, [refresh]);
 
+    // ✅ fetch notifications — moved from SideBar + NotificationComp
+    const fetchNotifications = useCallback((limit = 10, page = 1) => {
+        setNotifLoading(true);
+        getNotification(limit, page).then(res => {
+            setNotification({ ...res });
+
+            setIsAllNotifRead(
+                !res?.data?.some(n => !n.isRead)
+            );
+            setNotifError(null);
+        }).catch(err => {
+            console.log(err, "Error in fetching notification");
+            setNotifError("Failed to load notifications");
+        }).finally(() => setNotifLoading(false));
+    }, []);
+
+    // initial fetch (drives the unread badge) + refetch whenever notifRefresh toggles
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications, notifRefresh]);
+
+    // ✅ mark-all-read — moved from NotificationComp
+    const handleMarkAllRead = async () => {
+        if (!notification?.data?.length || markingAllRead) return;
+        setMarkingAllRead(true);
+        try {
+            await markAllAsRead();
+            setIsNotifOpened(false);
+            setNotifRefresh(prev => !prev);
+            setNotification(prev => prev ? {
+                ...prev,
+                data: prev.data.map(n => ({ ...n, isRead: true }))
+            } : prev);
+            setIsAllNotifRead(true);
+        } catch (err) {
+            console.error("Failed to mark all as read", err);
+        } finally {
+            setMarkingAllRead(false);
+        }
+    };
+
     const onSelectedChat = async (chatId: string) => {
         if (!chatId) return;
-        console.log("selected chat id", chatId);
         try {
             const users = await getParticipantsForChat(chatId) as unknown as ApiResponse<User[]>;
             setParticipants(users.data as unknown as User[]);
@@ -99,10 +154,33 @@ export const useChat = () => {
             toast.error(messsage || "Failed to fetch participants for this chat");
         }
 
-
         setSelectedChatId(chatId);
         try {
             await readChat(chatId);
+            await readByChatIdNotification(chatId);
+
+            setIsNotifOpened(false);
+
+            // ✅ locally mark notifications belonging to this chat as read
+            setNotification(prev => {
+                if (!prev) return prev;
+
+                const updatedData = prev.data.map(n =>
+                    String(n.chat.id) === String(chatId)
+                        ? { ...n, isRead: true }
+                        : n
+                );
+
+                // ✅ update bell indicator
+                setIsAllNotifRead(
+                    !updatedData.some(n => !n.isRead)
+                );
+
+                return {
+                    ...prev,
+                    data: updatedData
+                };
+            });
         } catch (err) {
             toast.error("Failed to mark messages as read");
             console.error("Error marking messages as read:", err);
@@ -123,5 +201,60 @@ export const useChat = () => {
         );
         selectedChatIdRef.current = chatId;
     }
-    return { loading, getChat, selectedChatId, setSelectedChatId, chats, onSelectedChat, setRefresh, participants }
+
+    // ✅ notification click — moved from NotificationComp, calls onSelectedChat internally
+    // const handleNotificationClick = async (chatId: string, notificationId: string) => {
+    //     try {
+    //         await readNotification(notificationId);
+    //     } catch (err) {
+    //         console.error("Failed to mark notification as read", err);
+    //     }
+    //     await onSelectedChat(chatId);
+    //     setIsNotifOpened(false);
+    //     setNotifRefresh(prev => !prev);
+    // };
+
+    const handleNotificationClick = async (
+        chatId: string,
+        notificationId: string
+    ) => {
+        try {
+            await readNotification(notificationId);
+
+            // ✅ mark clicked notification as read locally
+            setNotification(prev => {
+                if (!prev) return prev;
+
+                const updatedData = prev.data.map(n =>
+                    String(n.id) === String(notificationId)
+                        ? { ...n, isRead: true }
+                        : n
+                );
+
+                // ✅ remove bell dot when last unread notification is read
+                setIsAllNotifRead(
+                    !updatedData.some(n => !n.isRead)
+                );
+
+                return {
+                    ...prev,
+                    data: updatedData
+                };
+            });
+
+        } catch (err) {
+            console.error("Failed to mark notification as read", err);
+        }
+
+        await onSelectedChat(chatId);
+
+        setIsNotifOpened(false);
+    };
+    
+    return {
+        loading, getChat, selectedChatId, setSelectedChatId, chats, onSelectedChat, setRefresh, participants,
+        setIsAllNotifRead, isAllNotifRead,
+        notification, notifLoading, notifError, markingAllRead,
+        fetchNotifications, handleMarkAllRead, handleNotificationClick, setIsNotifOpened, isNotifOpened
+    }
 }

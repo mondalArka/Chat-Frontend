@@ -27,3 +27,7 @@ export const verifyRegisterOtp = async (sessionId: string, otp: string): Promise
     const res = await apiClient.post("/auth/verify-registration", { sessionId, otp });
     return res.data;
 }
+
+export const logout = async (): Promise<void> => {
+    await apiClient.get("/auth/logout");
+}

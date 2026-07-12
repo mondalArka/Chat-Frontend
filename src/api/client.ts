@@ -10,7 +10,6 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
     (res => res),
     (err) => {
-        console.log(err.config.url)
         if (err.response?.status === 401 && err.config.url !== "/auth/me") {
             window.location.href = "/";
         }

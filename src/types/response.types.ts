@@ -75,3 +75,32 @@ export interface Message {
     updatedAt: string;
     deletedAt?: string | null;
 }
+
+export type NotificationParticipant = {
+    chatId: string;
+    user: {
+        name: string;
+    };
+};
+
+export type NotificationChat = {
+    id: string;
+    type: "one" | "group"; // adjust if there are other chat types in your app
+    chatName: string;
+    participants: NotificationParticipant[];
+};
+
+export type Notification = {
+    id: string;
+    userId: string;
+    name: string;
+    chat: NotificationChat;
+    isRead: boolean;
+    createdAt: string; // ISO date string — convert with `new Date(createdAt)` when needed
+};
+
+export type NotificationResponse = {
+    data: Notification[];
+    hasNext: boolean;
+    count: number;
+};

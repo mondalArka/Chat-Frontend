@@ -1,12 +1,16 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useAuth } from "../../context/auth.context";
 import { useChat } from "./hooks/useChat";
 import { Conversation } from "./layout/Coversation";
 import { SideBar } from "./layout/Sidebar";
 
-
 export function Dashboard() {
-    const { chats, onSelectedChat, selectedChatId, setRefresh, participants } = useChat();
+    const {
+        chats, onSelectedChat, selectedChatId, setRefresh, participants,
+        setIsAllNotifRead, isAllNotifRead,
+        notification, notifLoading, notifError, markingAllRead, setIsNotifOpened, isNotifOpened,
+        fetchNotifications, handleMarkAllRead, handleNotificationClick
+    } = useChat();
     const cursorRef = useRef<Record<string, string>>({});
     const { user } = useAuth();
 
@@ -17,11 +21,24 @@ export function Dashboard() {
                 chats={chats}
                 selectedChatId={selectedChatId}
                 setSelectedChat={onSelectedChat}
+                onSelectedChat={onSelectedChat}
+                setIsAllNotifRead={setIsAllNotifRead}
+                isAllNotifRead={isAllNotifRead}
                 setRefresh={setRefresh}
+                setIsNotifOpened={setIsNotifOpened}
+                isNotifOpened={isNotifOpened}
+                notification={notification}
+                notifLoading={notifLoading}
+                notifError={notifError}
+                markingAllRead={markingAllRead}
+                fetchNotifications={fetchNotifications}
+                handleMarkAllRead={handleMarkAllRead}
+                handleNotificationClick={handleNotificationClick}
             />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {selectedChatId ? (
                     <Conversation
+                        key={selectedChatId}
                         chatId={selectedChatId}
                         userId={String(user?.id)}
                         participants={participants}
