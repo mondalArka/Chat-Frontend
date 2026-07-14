@@ -9,7 +9,7 @@ import {
     readNotification
 } from "../../../api/chat.api"
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ApiResponse, Chat, NotificationResponse } from "../../../types/response.types";
+import type { ApiResponse, Chat, NotificationResponse, Notification } from "../../../types/response.types";
 import { useSocket } from "../../../socket/socket.context";
 import { useAuth } from "../../../context/auth.context";
 import type { User } from "../../../types/user.types";
@@ -69,13 +69,28 @@ export const useChat = () => {
         callback({ userId: String(user?.id), isViewing: isUserInChat });
     }
 
+    const recieveNotification = (data: Notification) => {
+        setNotification(prev => {
+            return {
+                ...(prev ?? {
+                    hasNext: false,
+                    count: 0,
+                    data: []
+                }),
+                data: [...(prev?.data || []), data]
+            }
+        })
+    }
+
     useEffect(() => {
         if (!socket) return;
         socket.on("receive-message", handleNewMessage);
         socket.on("check-chat", checkIsUserInChat);
+        socket.on("notification", recieveNotification);
         return () => {
             socket.off("receive-message", handleNewMessage);
             socket.off("check-chat", checkIsUserInChat);
+            socket.off("notification", recieveNotification);
         };
     }, [socket]);
 
@@ -250,7 +265,7 @@ export const useChat = () => {
 
         setIsNotifOpened(false);
     };
-    
+
     return {
         loading, getChat, selectedChatId, setSelectedChatId, chats, onSelectedChat, setRefresh, participants,
         setIsAllNotifRead, isAllNotifRead,
