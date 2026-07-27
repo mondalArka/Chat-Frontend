@@ -284,8 +284,9 @@ export function SideBar({
           const name =
             item.chatType === "group"
               ? item?.chatName || "Unknown"
-              : item.participants.find((p) => p.userId !== Number(user!.id))
-                  ?.name || "Unknown";
+              : item.participants.find(
+                  (p) => String(p.userId) !== (user!.id as unknown as string),
+                )?.name || "Unknown";
           return (
             <div
               key={item.chatId}

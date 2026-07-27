@@ -97,6 +97,7 @@ export const useChat = () => {
   };
 
   const newChat = (data: Chat) => {
+    // console.log(data, "new chat data");
     setChats((prev) => [data, ...prev]);
   };
 
